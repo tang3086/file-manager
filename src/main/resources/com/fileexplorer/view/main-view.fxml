@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.Node?>
+
+<BorderPane fx:id="mainPane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.fileexplorer.controller.MainController"
+            style="-fx-background-color: #f5f5f5;">
+
+    <!-- 顶部：菜单栏和工具栏 -->
+    <top>
+        <VBox spacing="0">
+            <!-- 菜单栏 -->
+            <MenuBar>
+                <Menu text="文件">
+                    <MenuItem text="刷新" onAction="#refreshDirectory"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="退出" onAction="#exitApplication"/>
+                </Menu>
+                <Menu text="查看">
+                    <MenuItem text="按名称排序" onAction="#sortByName"/>
+                    <MenuItem text="按大小排序" onAction="#sortBySize"/>
+                    <MenuItem text="按时间排序" onAction="#sortByTime"/>
+                </Menu>
+                <Menu text="帮助">
+                    <MenuItem text="关于" onAction="#showAbout"/>
+                </Menu>
+            </MenuBar>
+
+            <!-- 工具栏 -->
+            <ToolBar style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
+                <!-- 路径导航 -->
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="路径:" style="-fx-text-fill: #333; -fx-font-weight: bold;"/>
+                    <TextField fx:id="pathField" promptText="输入路径..." prefWidth="300"
+                               style="-fx-border-color: #ccc; -fx-border-radius: 3; -fx-background-radius: 3;"/>
+                    <Button text="转到" onAction="#navigateToPath"
+                            style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <!-- 刷新按钮 -->
+                <Button text="刷新" onAction="#refreshDirectory"/>
+
+                <Separator orientation="VERTICAL"/>
+
+                <!-- 搜索区域 -->
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="搜索:" style="-fx-text-fill: #333;"/>
+
+                    <!-- 搜索框和下拉按钮组合 -->
+                    <HBox spacing="0">
+                        <TextField fx:id="searchField" promptText="输入文件名..." prefWidth="180"
+                                   onAction="#searchFiles"/>
+                        <Button fx:id="historyButton" text="▼" onAction="#showSearchHistoryMenu"
+                                style="-fx-background-color: #e0e0e0; -fx-text-fill: #333; -fx-border-width: 0; -fx-padding: 5 8;"/>
+                    </HBox>  <!-- 添加了闭合标签 -->
+
+                    <Button text="搜索" onAction="#searchFiles"
+                            style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    <Button fx:id="clearSearchButton" text="清除" onAction="#clearSearch"
+                            style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <!-- 高级搜索选项（可选，可折叠） -->
+                <HBox spacing="5" alignment="CENTER_LEFT" fx:id="advancedSearchOptions" visible="false">
+                    <Label text="类型:" style="-fx-text-fill: #333;"/>
+                    <ComboBox fx:id="searchTypeCombo" prefWidth="100"/>
+                    <CheckBox fx:id="caseSensitiveCheckBox" text="区分大小写" style="-fx-text-fill: #333;"/>
+                </HBox>
+
+                <!-- 操作按钮 -->
+                <Button text="复制" onAction="#copySelectedItems"/>
+                <Button text="粘贴" onAction="#pasteItems"/>
+                <Button text="删除" onAction="#deleteSelectedItems"/>
+                <Button text="新建文件夹" onAction="#createNewFolder"/>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <!-- 中心：文件浏览区域 -->
+    <center>
+        <SplitPane dividerPositions="0.3">
+            <!-- 左侧：目录树 -->
+            <VBox>
+                <Label text="文件夹" style="-fx-font-weight: bold; -fx-padding: 5px; -fx-text-fill: #333;"/>
+                <TreeView fx:id="directoryTree" VBox.vgrow="ALWAYS"
+                          style="-fx-border-color: #e0e0e0; -fx-background-color: white;"/>
+            </VBox>
+
+            <!-- 右侧：文件列表 -->
+            <VBox>
+                <TableView fx:id="fileTable" VBox.vgrow="ALWAYS"
+                           style="-fx-border-color: #e0e0e0; -fx-background-color: white;">
+                    <columns>
+                        <TableColumn fx:id="nameColumn" text="名称" prefWidth="200">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="name"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="sizeColumn" text="大小" prefWidth="100">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="size"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="typeColumn" text="类型" prefWidth="100">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="type"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="modifiedColumn" text="修改时间" prefWidth="150">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="modifyTime"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="5"
+              style="-fx-background-color: #f8f8f8; -fx-border-color: #e0e0e0; -fx-border-width: 1 0 0 0; -fx-padding: 5px;">
+            <ProgressBar fx:id="progressBar" prefWidth="200" progress="0" visible="false"
+                         style="-fx-accent: #4CAF50;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <!-- 磁盘空间信息 -->
+            <Label fx:id="diskSpaceLabel" text="磁盘空间: 正在获取..."
+                   style="-fx-text-fill: #666; -fx-font-size: 12px;"/>
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="statusLabel" text="就绪"
+                   style="-fx-text-fill: #666; -fx-font-size: 12px;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
